@@ -26,10 +26,13 @@ from warnings import catch_warnings
 import sys
 import subprocess
 
+from flask import redirect
+
 from flask_frozen import (Freezer, walk_directory,
     FrozenFlaskWarning, MissingURLGeneratorWarning, MimetypeMismatchWarning,
     NotFoundWarning, RedirectWarning)
 from flask_frozen import test_app
+import flask_frozen
 
 try:
     unicode
@@ -121,9 +124,9 @@ class TestFreezer(unittest.TestCase):
         u'/product_4/': b'Product num 4',
         u'/product_5/': b'Product num 5',
         u'/static/favicon.ico': read_file(test_app.FAVICON),
-        u'/static/style.css': b'/* Main CSS */\n',
-        u'/static/main.js': b'/* Main JS */\n',
-        u'/admin/css/style.css': b'/* Admin CSS */\n',
+        u'/static/style.css': b'/* Main CSS */',
+        u'/static/main.js': b'/* Main JS */',
+        u'/admin/css/style.css': b'/* Admin CSS */',
         u'/where_am_i/': b'/where_am_i/ http://localhost/where_am_i/',
         u'/page/foo/': u'Hello\xa0World! foo'.encode('utf8'),
         u'/page/I løvë Unicode/':
@@ -410,6 +413,17 @@ class TestFreezer(unittest.TestCase):
             with open(os.path.join(temp, 'skipped.html')) as f:
                 self.assertEqual(f.read(), '6*9')
 
+    def test_error_external_redirect(self):
+        with self.make_app() as (temp, app, freezer):
+            app.config['FREEZER_REDIRECT_POLICY'] = 'follow'
+            # Add a new endpoint with external redirect
+            @app.route('/redirect/ext/')
+            def external_redirected_page():
+                return redirect('https://github.com/Frozen-Flask/Frozen-Flask')
+
+            with self.assertRaises(RuntimeError):
+                freezer.freeze()
+
 class TestWarnings(unittest.TestCase):
     def test_warnings_share_common_superclass(self):
         with catch_warnings(record=True) as logged_warnings:
@@ -528,7 +542,8 @@ class TestLastModifiedGenerator(TestFreezer):
 
 class TestPythonCompatibilityWarnings(unittest.TestCase):
     def test_importing_collections(self):
-        ps = subprocess.check_output([sys.executable, 'flask_frozen/__init__.py'],
+        flask_script_path = flask_frozen.__file__
+        ps = subprocess.check_output([sys.executable, flask_script_path],
                                      stderr=subprocess.STDOUT)
         stderr = ps.decode('utf-8').lower()
         assert 'deprecationwarning' not in stderr

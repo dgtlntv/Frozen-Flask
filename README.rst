@@ -26,6 +26,11 @@ Contributing
 * Do your changes, make sure tests pass
 * Send a Pull Request to the upstream repository
 
+Status
+------
+
+**The project doesn't have an active maintainer as of now.** If you want to become one, please contact `@honzajavorek <https://github.com/honzajavorek>`__ and `@tswast <https://github.com/tswast>`__. `@SimonSapin <https://github.com/SimonSapin>`__ is pretty much inactive, but has his picture in our Hall of Fame for creating the project.
+
 License
 -------
 
